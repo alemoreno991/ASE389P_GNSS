@@ -39,40 +39,67 @@ simulateTrainDoppler(fc, vTrain, t0, x0, xObs, dObs, delt, N, vs)
 %
 % Author:
 %+==============================================================================+
-    tVec = zeros(N-1,1);
-    fDVec = zeros(N-1,1);
+    tVec = zeros(N,1);
+    fDVec = zeros(N,1);
     
-    t = 0;
-    rRX = positionRX(t, xObs, dObs);
-    deltaR_prev = norm(rRX - positionTX(t, x0, vTrain));
-    for h = 2:N
-        t = t + delt;
-        TOF = norm(rRX - positionTX(t, x0, vTrain))/vs;
-        deltaR_now = norm(rRX - positionTX(t, x0, vTrain));
-        v_los = (deltaR_now - deltaR_prev) / delt;
+    t = t0;
+    for h = 1:N
+        % Find rRX(t) and vRX(t)
+        rRX = positionRX(t, t0, xObs, dObs);
+        vRX = velocityRX(t, t0);
+  
+        % Calculate TOF
+        TOF = calculateTOF(t, rRX, t0, x0, vTrain, vs);
         
+        % Find rTX(t-TOF) and vTX(t-TOF)
+        rTX = positionTX(t-TOF, t0, x0, vTrain);
+        vTX = velocityTX(t-TOF, t0, vTrain);
+
+        % Find the line-of-sight
+        los = (rRX - rTX) / norm(rRX - rTX);
+
+        % Project the velocity of TX to the line-of-sight
+        vTX_los =  dot(vTX, los);
+        % Project the velocity of RX to the line-of-sight
+        vRX_los =  dot(vRX, los);
+        % Calculate the line-of-sight velocity 
+        v_los = vRX_los - vTX_los;
+
+        % Calculate the apparent Doppler frequency shift as sensed by the
+        % observer
         beta = v_los / vs;
         fr = fc / (1 + beta);
-        fDVec(h-1) = fr - fc;
-        tVec(h-1) = t + TOF;
-        deltaR_prev = deltaR_now;
+        fDVec(h) = fr - fc;
+        tVec(h) = t;
+        t = t + delt;
     end
 end
 
-function [rRX] = positionRX(t, x0, y0)
+function [rRX] = positionRX(t, t0, x0, y0)
     rRX = [x0, y0];
 end
 
-function [rTX] = positionTX(t, x0, v0)
-    x = x0 + v0*t;
+function [vRX] = velocityRX(t, t0)
+    vRX = [0, 0];
+end
+
+function [rTX] = positionTX(t, t0, x0, v0)
+    x = x0 + v0*(t-t0);
     rTX = [x, 0];
 end
 
-% function [TOF] = calculateTOF(t, rRX, x0_TX, v0_TX, vs)
-%     deltaR = inf;
-%     TOF = norm(rRX - positionTX(t, x0_TX, v0_TX))/vs; % estimated TOF
-%     while (deltaR > 1e-3)
-%         deltaR= vs*TOF - norm(rRX - positionTX(t-TOF, x0_TX, v0_TX));
-%         TOF = TOF + deltaR/vs;
-%     end
-% end
+function [vTX] = velocityTX(t, t0, v0)
+    vTX = [v0, 0];
+end
+
+function [TOF] = calculateTOF(t, rRX, t0, x0, vTrain, vs)
+    % Initialize with a guess
+    TOF = norm(rRX - positionTX(t, t0, x0, vTrain))/vs; 
+    error = vs*TOF - norm(rRX - positionTX(t-TOF, t0, x0, vTrain));
+    
+    % Iterate until convergence
+    while ( abs(error) > 1e-3 )
+        TOF = TOF - error/vs;
+        error = vs*TOF - norm(rRX - positionTX(t-TOF, t0, x0, vTrain));
+    end
+end
