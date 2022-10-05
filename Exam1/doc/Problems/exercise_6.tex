@@ -1,0 +1,101 @@
+\section{Problem 6}
+
+\subsection{Instruction}
+
+If C(t) is a random binary (± 1) spreading code with rectangular pulses, then,
+as we showed in lecture, the power spectral density of C(t) is given by
+
+\begin{equation}
+	S_C (f) = T_C sinc^2 (f T_C )
+\end{equation}
+
+where $T_C$ is the chipping interval.
+
+Suppose instead that C(t) has psd
+
+\begin{equation}
+	S_C (f) = T_C \Pi(f T_C )
+\end{equation}
+
+where $\Pi(f)$ is the rect function introduced in lecture. Imagine a
+constellation of GNSS satellites broadcasting signals having this new $S_C (f)$.
+Assume the signals have no data bit modulation, so that the signal’s baseband
+representation is of the form
+
+\begin{equation}
+	r(t) = \sqrt{P} C(t) \exp[j \theta(t)]
+\end{equation}
+
+For this case, calculate $I_0 = S_I(0)$ for a single multiple-access interference
+signal with power $P_I$, where $I_0$ and $S_I (f)$, the power spectrum of $I(t)$,
+were defined in lecture. Now consider M multiple-access signals (including the
+desired signal). If each of the M received signals has power $P_I$, at what value
+of M does $I_0$ exceed $N_0$ ? Express your answer in terms of $N_0$, $T_C$ and
+$P_I$.
+
+\subsection{MATLAB code}
+
+\begin{lstlisting}
+%% Problem 4
+% Suppose that C(t) has a power spectral density given by:
+%
+%                   Sc(f) = Tc * rectangularPulse(f*Tc)
+%
+% Where 'rectangularPulse' is the rect function introduced in lecture.
+% Imagine a constellation of GNSS satellites broadcasting signals having
+% this new Sc(f). Assume the signals have no data bit modulation, so that
+% the signal's baseband representation is of the form:
+%
+%                   r(t) = sqrt(P)*C(t)*exp[j theta(t)]
+%
+clc, close all, clear all
+
+% For this case, calculate I0 = SI(f=0) for a single multiple-access
+% interference signal with power PI, where I0 and SI(f), the power spectrum
+% of I(t), were defined in class.
+%
+% ANSWER:
+% Following the same reasoning as in lecture:
+% If CI(t) is a random-binary sequence "like C(t)" (same Tc), and if the
+% two are uncorrelated. Then, (assuming fD=0)
+%                       
+%                   SrI(f) = PI*Sc(f)
+% Thus, 
+%                   SI(f) = Sc(f) x SrI(f) = Sc(f) x (PI*Sc(f))
+%
+%                   SI(f) = PI * integral_{-inf}^{inf}(Sc(f-x)Sc(x) dx
+%
+% Since, Sc(f) = Sc(-f)
+%
+%                   SI(f) = PI * integral_{-inf}^{inf}(Sc(x-f)Sc(x) dx
+%
+% Now, using the fact that the receiver has a low pass filter, only the f=0
+% part of the spectral density leaks through. Therefore, it's ok to assume 
+% I0 = SI(f=0) (REMEMBER: I0 is also a power density)
+%
+%     SI(0) = PI * integral_{-inf}^{inf}(Sc(x)^2) dx
+%
+%     SI(0) = PI * integral_{-inf}^{inf}(Tc*rectangularPulse(x*Tc)^2) dx
+%
+%     SI(0) = PI*Tc
+I0 = PI*Tc;
+I0_dBW_Hz = 10*log10(I0)
+
+% Now consider M multiple-access signals (including the desired signal). If
+% each of the M received signals has power PI, at what value of M does I0
+% exceed N0? Express your answer in terms of N0, Tc, PI.
+%
+% ANSWER:
+% The multiple-access interference is characterized by:
+%
+%           I0 = PI*Tc*(M-1)
+%
+% We want to know what M would result in I0 >= N0
+%
+%           PI*Tc*(M-1) >= N0
+%           M >= N0/(PI*Tc) + 1, where M is integer
+%        
+% => I0 exceeds N0 when:
+%           M = ceil(N0/(PI*Tc) + 1)
+%
+\end{lstlisting}
