@@ -1,0 +1,66 @@
+function [fdk_hat, tsk_hat, isAcquired] = acquireGPS(tau, x, T, ...
+                                                fStep, nStep, TXID, method)
+Nk = floor(1e-3/T);
+
+% Spreading code replica
+Nc = 1023;
+Tc = 1e-3/Nc;
+code = generatePRN(TXID); 
+
+% resample C at TsamplingIQ
+C = oversampleSpreadingCode(code, Nk/Nc, 0, Nk, Nc);
+
+% k-th accumulation interval
+Ta = Nk*T;
+j = (1:Nk)';
+
+epsilon = 5*(1/Ta);
+fDk_hat = -epsilon:fStep:epsilon;
+M = zeros(Nk,length(fDk_hat));
+if strcmp(method, 'FFT')
+    for fDk_idx = 1:length(fDk_hat)
+        Cr = fft(C);
+        x_tilde = x(j).*exp(-i*2*pi*fDk_hat(fDk_idx)*tau(j));
+        Xr_tilde = fft(x_tilde);
+        Zr = Xr_tilde.*conj(Cr);
+        zk = ifft(Zr);
+        
+        M(:,fDk_idx) = abs(zk).^2;
+    end
+else
+    parfor fDk_idx = 1:length(fDk_hat)
+        for n = 0:nStep:Nk-1
+            % phase estimate over the accumulation interval
+            theta_jk_hat = 0;
+            theta_hat = 2*pi*fDk_hat(fDk_idx)*(tau(j) - tau(n)) + theta_jk_hat;
+            
+            % Align C with the code in the incoming data.
+            Cshift = circshift(C, n);
+
+            % Calculate Sk and store in a matrix that represents the 2D-grid
+            Sk = sum(x(j).*exp(-i*(theta_hat)).*Cshift);
+            M(jk, fDk_idx) = abs(Sk)^2;
+
+        end
+    end
+end
+
+% DEBUG
+tau_jk = tau(1:Nk)*1e6;
+h = surf(fDk_hat, tau_jk, M);
+set(h,'LineStyle','none')
+title('2D grid - S_k')
+xlabel('$\hat{f}_{Dk} [Hz]$','Interpreter','latex')
+ylabel('$\tau_{jk} [us]$','Interpreter','latex')
+
+% Find the maximum Sk in the 2D-grid
+[max_Sk, max_idx] = max(M(:));
+[jk, fDk_idx]=ind2sub(size(M),max_idx);
+
+% Estimates
+isAcquired = max_Sk > 3e9;
+fdk_hat = fDk_hat(fDk_idx); % Hz
+tsk_hat = tau(jk)*1e6;      % us 
+
+end
+
