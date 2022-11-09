@@ -1,0 +1,97 @@
+\section{Problem 1}
+
+\subsection{Instruction}
+
+In this problem you will explore the difference between low- and high-side
+mixing on carrier phase tracking. Consider the process of converting a bandpass
+signal $2 a(t) \cos{2 \pi f_c}$, centered at $f_c$, to an intermediate frequency
+via mixing with a signal $\cos(2 \pi f_l t)$:
+
+\begin{equation}
+	xu (t) = 2 a(t) \cos{2 \pi f_c t} cos( 2 \pi f_l t)
+	= a(t) \cos{[2 \pi(f_c − f_l ) t]} + HFT
+\end{equation}
+
+Filtering at the intermediate frequency removes the high-frequency term (HFT),
+leaving only
+
+
+\begin{equation}
+	x(t) = a(t) \cos{ 2 \pi (f_c − f_l ) t }.
+\end{equation}
+
+By definition, the frequency of a physical signal (the number of cycles per
+second) is a positive quantity. Therefore, if $f_c < f_l$, we express $x(t)$ as
+
+\begin{equation}
+	x(t) = a(t) \cos{ [2 \pi (-f_c + f_l ) t] }
+\end{equation}
+
+by invoking the identity $\cos(y) = \cos(−y)$.
+The original bandpass signal’s center frequency fc can be decomposed as
+$f_c = f_{c,nom} + f_{c,D}$ where $f_{c,nom}$ is the nominal value (e.g.,
+1575.42 MHz for GPS L1), and $f_{c,D}$ is a Doppler value due to
+satellite-to-receiver relative motion and satellite clock frequency offset.
+
+Likewise,
+
+\begin{equation}
+	f_l = f_{l,nom} + f_{l,D}
+\end{equation}
+
+where $f_{l,nom}$ is the nominal local oscillator value and $f_{l,D}$ is a
+Doppler value due to receiver clock frequency offset. When $f_{c,nom} < f_{l,nom}$,
+the mixing operation is referred to as high-side mixing
+(HS mixing), whereas when $f_{l,nom} < f_{c,nom}$, it is low-side mixing
+(LS mixing). The intermediate frequency is defined as
+
+\begin{equation}
+	fIF = |fc,nom − fl,nom |
+\end{equation}
+
+Note that $f_{IF}$ is always chosen to be large enough that $f_c < f_l$ for HS
+mixing and $f_l < f_c$ for LS mixing over the range of expected $f_{c,D}$ and
+$f_{l,D}$. The downmixed signal $x(t)$ is modeled as
+
+\begin{equation}
+	x(t) = a(t) \cos{ 2 \pi f_{IF} t + \theta(t)}
+\end{equation}
+
+Explain the different effect of HS and LS mixing on $\theta(t)$. What
+implications might this different effect have for signal acquisition and
+tracking?
+
+\subsection{Solution}
+
+The model of the received and downmixed signal is
+
+\begin{equation}
+	x(t) = a(t) \cos{ 2 \pi f_{IF} t + \theta(t)}
+\end{equation}
+
+where
+
+\begin{equation}
+	\theta(t) =
+	\begin{cases}
+		f_{c,nom} - f_{l,nom} & (HS mixing) \\
+		f_{l,nom} - f_{c,nom} & (LS mixing)
+	\end{cases}
+\end{equation}
+
+Thus, we have that
+
+\begin{equation}
+	\theta(t) =
+	\begin{cases}
+		\theta_{HS} = \int_0^t f_{l,D}(\tau) - f_{c,D}(\tau) d\tau + \theta(0) & (HS mixing) \\
+		\theta_{LS} = \int_0^t f_{c,D}(\tau) - f_{l,D}(\tau) d\tau + \theta(0) & (LS mixing)
+	\end{cases}
+\end{equation}
+
+Note that $\dot{\theta}_HS(t) = - \dot{\theta}_LS(t)$. In addition, if a
+high-side mixed signal ends completely on the other side of the zero frequency
+line, its phase gets reversed. Interestingly, observe that a small increment in
+$f_c$ actually decreases the intermediate frequency $f_{IF}$.
+
+

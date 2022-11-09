@@ -19,7 +19,7 @@ Ns = round(Nr*Np/delChip);    % Number of samples of the sequence
 % rand ---- Sequence derived from Matlab randn function
 % pi ------ Sequence derived from the digits of pi
 % mseq ---- Maximal-length sequence with n = nStages
-codeType = 'pi';
+codeType = 'pi'; % Change this variable to see the different results
 
 %----- Generate codes
 X1 = zeros(Np,1);

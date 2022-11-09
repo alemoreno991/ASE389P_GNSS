@@ -1,0 +1,50 @@
+\section{Problem 7}
+
+\subsection{Instruction}
+
+In lecture, we noted that the phase shift across an ionospheric blob
+(irregularity) of size a (in meters) in excess of the phase shift across a layer
+of average background density of the same size is
+$\Delta \phi_0 = a r_e \lambda \Delta\eta_e$ where $r_e$ is the classical
+electron radius in meters, $\lambda$ is the wavelength of the carrier in meters,
+and $\Delta \eta_e$ is the excess electron density within the blob as compared
+to the average background density, in electrons per cubic meter. Derive this
+expression from expressions for the refractive index $\eta$ and the excess phase
+delay $\Delta \tau_p$ given in lecture.
+
+\subsection{Solution}
+
+The excess delay is defined as follows
+
+\begin{equation}
+	\Delta \tau_p = \frac{1}{c} \int_{SV}^{RX} \left[ \eta(l) - 1 \right] dl
+	\label{eq:excess_delay}
+\end{equation}
+
+It is possible to think of scintillation as some electron density anomaly (blob)
+in the path of the signal. Therefore, it is possible to write something like
+
+\begin{equation*}
+	\Delta \tau_p = \frac{1}{c} \int_{SV}^{RX} \left[ \eta_{avg}(l) - 1 \right] dl
+	+ \frac{1}{c} \int_{blob} \left[ \eta_{blob}(l) - 1 \right] dl
+\end{equation*}
+
+
+\begin{eqnarray*}
+	\Delta \tilde{\tau}_p &=& \frac{1}{c} \int_{blob} \left[ \eta_{blob}(l) - 1 \right] dl \\
+	&=& \frac{1}{c} \int_{0}^{a} \left[ (1 - \frac{r_e \Delta \eta_e \lambda^2}{2 \pi} ) - 1 \right] dl \\
+	&=& - \frac{r_e \Delta \eta_e \lambda^2}{2 \pi c}  \int_{0}^{a} 1 dl \\
+	&=& - \frac{a r_e \Delta \eta_e \lambda^2}{2 \pi c}
+\end{eqnarray*}
+
+Recognizing that $\Delta \tilde{\tau}_p$ is the excess delay in seconds associated
+with the scintillation effect of the blob. Then it is possible to compute the
+phase shift as follows. First, $c \Delta \tilde{\tau}_p$ is the delay in meters.
+Then, $\frac{c \Delta \tilde{\tau}_p}{\lambda}$ is the delay expressed as
+a fraction of wave length. Finally the phase shift can be obtained through
+
+\begin{equation*}
+	\Delta \phi_0 = \frac{2 \pi c \Delta \tilde{\tau}_p}{\lambda}
+	= - a r_e \Delta \eta_e \lambda
+\end{equation*}
+

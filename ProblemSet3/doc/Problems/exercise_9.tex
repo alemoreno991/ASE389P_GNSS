@@ -1,0 +1,63 @@
+\section{Problem 9}
+
+\section{Instruction}
+
+Download the Cornell Scintillation Simulation Toolkit from
+http://radionavlab.ae.utexas.edu/datastore/websiteFiles/scintSim.zip.
+Read the instructions in UserGuide.pdf for generating synthetic scintillation.
+Experiment with the graphical user interface by typing guiscint at the Matlab
+prompt. You’ll be able to generate a time history of the complex channel
+response function $z(t)$ by setting the parameters S4 and $\tau_0$ and pressing
+‘Simulate’. The quantity Te above the bar chart is the mean time between
+differentially-detected bit errors, which serves as a proxy for the mean time
+between cycle slips. Notice how Te changes as you experiment with different
+values of S4, $\tau_0$, and C/N0. Write your own Matlab function to calculate
+the S4 index and the decorrelation time $\tau_0$ corresponding to a given
+scintillation time history produced by the scintillation simulator and stored in
+scintDat.mat. Test your function to see how well your calculated S4 and $\tau_0$
+values match the values that were used as parameters in generating the data.
+
+\subsection{Solution}
+
+
+\begin{lstlisting}
+function [S4,tau0] = computeS4AndTau0(zkhist,tkhist)
+% computeS4AndTau0 : Compute the scintillation index S4 and the decorrelation
+%                    time tau0 corresponding to the input complex channel
+%                    response function time history zkhist.
+%
+% INPUTS
+%
+% zkhist ----- Nt-by-1 vector containing the normalized complex scintillation
+%              time history in the form of averages over Ts with sampling
+%              interval Ts. zkhist(kp1) is the average over tk to tkp1.
+%
+% tkhist ----- Nt-by-1 vector of time points corresponding to zkhist.
+%
+%
+% OUTPUTS
+%
+% S4 --------- Intensity scintillation index of the scintillation time history
+%              in zkhist, equal to the mean-normalized standard deviation of
+%              the intensity abs(zkhist).^2.
+%
+% tau0 ------- The decorrelation time of the scintillation time history in
+%              zkhist, in seconds.
+%
+%
+%+------------------------------------------------------------------------------+
+% References:
+%
+%
+%+==============================================================================+
+alpha = abs(zkhist);
+I = alpha.^2;
+S4_squared = (mean(I.^2) - mean(I)^2) / mean(I)^2;
+S4 = sqrt(S4_squared);
+
+z_bar = mean(zkhist);
+xi = zkhist - z_bar;
+[R,lags] = xcorr(xi,'normalized'); 
+idx = find(abs(R(find(lags==0):end)) < R(find(lags==0))*exp(-1), 1);
+tau0 = tkhist(idx);
+\end{lstlisting}

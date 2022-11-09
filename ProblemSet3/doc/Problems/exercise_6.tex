@@ -1,0 +1,65 @@
+\section{Problem 6}
+
+\subsection{Instruction}
+
+Download the gzipped archive gridDataUt1.tar.gz from
+http://radionavlab.ae.utexas.edu/datastore/gnssSigProcCourse/. Repeat the steps
+in problem 4 for this data set. Do this for TXID 29 and for TXID 31. Note that
+the data capture interval is much shorter, and the ionospheric delay changes
+much less significantly, than in the original data set for problem 4.
+
+The following broadcast ionospheric parameters are valid for the data in
+gridDataUt1.tar.gz:
+
+\begin{verbatim}
+alpha0: 4.6566e-009
+alpha1: 1.4901e-008
+alpha2: -5.9605e-008
+alpha3: -5.9605e-008
+beta0: 79872
+beta1: 65536
+beta2: -65536
+beta3: -393220
+\end{verbatim}
+
+Assume a true GPS time of receipt given by
+
+\begin{verbatim}
+week = 1490
+seconds = 146238.774036515
+\end{verbatim}
+
+and a static ECEF receiver antenna location given in meters by
+
+\begin{verbatim}
+X = 1101972.5309609
+Y = -4583489.78279095
+Z = 4282244.3010423
+\end{verbatim}
+
+Use the function you wrote for problem 5 to determine the ionospheric delay as
+calculated by the broadcast model for TXIDs 29 and 31, with the ECEF SV position
+of TXID 29 at time of transmission given in meters by
+
+\begin{verbatim}
+X = 24597807.6872883
+Y = -3065999.1384585
+Z = 9611346.77939927
+\end{verbatim}
+
+and the ECEF SV position of TXID 31 at time of transmission given in meters by
+
+\begin{verbatim}
+X = 2339172.27088689
+Y = -16191391.3551878
+Z = 21104185.0481546
+\end{verbatim}
+
+Compare the ionospheric delay as calculated by the broadcast model for TXIDs 29
+and 31 with your corresponding plots for these two. How much difference is there
+between the model-calculated and the empirical ionospheric delays? To what do you
+attribute this discrepancy?
+
+\subsection{Solution}
+
+

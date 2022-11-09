@@ -1,0 +1,95 @@
+\section{Problem 3}
+
+\subsection{Instruction}
+
+In lecture we considered an analog signal $x_a (t)$ sampled by impulses:
+
+\begin{equation}
+	x_\delta (t) = \sum_{n=-\infty}^{\infty} x_a(nT) \delta(t-nT)
+	\label{eq:ex3_analog_signal}
+\end{equation}
+
+We showed that the Fourier transform of the impulse-sampled signal $x_\delta (t)$
+is related to $X_a (f)$, the Fourier transform of $x_a (t)$, by
+
+\begin{equation}
+	X_\delta (f) = \frac{1}{T} \sum_{n=-\infty}^{\infty} X_a(f- \frac{n}{T})
+	\label{eq:ex3_FT_sampled_signal}
+\end{equation}
+
+We can derive a similar relationship between $X_a (f)$ and the Fourier transform
+of the discrete-time signal
+
+\begin{equation}
+	x(n) = x_a (nT), − \infty < n < \infty
+\end{equation}
+
+To make this easier, we’ll define the frequency variable
+$\tilde{f} = f T = \frac{f}{f_s}$. This variable, which has units of cycles per
+sample and is often called the normalized frequency, is used as the frequency
+variable for discrete-time signals. For example, a discrete-time sinusoid can be
+represented as $2x(n) = cos(2\pi \tilde{f}n)$. For discrete-time signals, only
+frequencies in the range $− 1/2 \le \tilde{f} \le 1/2$ are unique;
+all frequencies $|\tilde{f}| > 1/2$ are aliases.
+
+The Fourier transform of a discrete-time signal $x(n)$ is defined by
+
+\begin{equation}
+	X(\tilde{f}) = \sum_{n=-\infty}^{\infty} x(n) \exp{(-j 2 \pi \tilde{f} n)}
+	\label{eq:ex3_DFT}
+\end{equation}
+
+and the inverse transform is defined by
+
+\begin{equation}
+	x(n) = \int_{-1/2}^{1/2} X(\tilde{f}) \exp{(j 2 \pi \tilde{f} n)} d\tilde{f}
+	\label{eq:ex3_IDFT}
+\end{equation}
+
+Derive the relationship between $X(\tilde{f})$ and $X_a (f)$.
+
+\textbf{Hint:} This is a standard relationship whose derivation can be found in
+many texts that treat digital signal processing. You’re free to use such a text
+as a guide or you may perform the derivation yourself following these steps:
+
+\begin{itemize}
+	\item Express $x(n) = x_a (nT)$ in terms of $X_a (f)$.
+	\item Equate this expression with the inverse transform definition given above.
+	\item Express the integral that goes from $−\infty to \infty$ as an infinite
+	      sum of integrals of width $f_s$.
+	\item Make a change of variable $f = \tilde{f}  fs$ in this infinite sum of
+	      integrals expression to eliminate $f$ in favor of $\tilde{f}$.
+	\item Make some deductions to arrive at the desired relationship between
+	      $X(\tilde{f})$ and $X_a (f = \tilde{f}·fs )$.
+\end{itemize}
+
+\subsection{Solution}
+
+It is possible to consider equation~\ref{eq:ex3_analog_signal} to calculate the
+Fourier Transform of $x_\delta(t)$.
+
+\begin{equation}
+	X_\delta (f) = \frac{1}{T} \sum_{n=-\infty}^{\infty} X_a(f- \frac{n}{T})
+	= \sum_{n=-\infty}^{\infty} x_a(nT) \exp{(-j 2 \pi f n T)}
+\end{equation}
+
+Then, it is possible to see that formula for $X_\delta (f)$ can be equated to
+\ref{eq:ex3_DFT} as follows
+
+\begin{equation}
+	X_\delta (f) = \sum_{n=-\infty}^{\infty} x_a(nT) \exp{(-j 2 \pi f n T)}
+	= \sum_{n=-\infty}^{\infty} x(n) \exp{(-j 2 \pi \tilde{f} n)}
+	= X(\tilde{f})
+\end{equation}
+
+This leads to the following relationship
+
+\begin{equation}
+	X(\tilde{f}) = X_\delta (\frac{\tilde{f}}{T})
+\end{equation}
+
+Now, using equation~\ref{eq:ex3_FT_sampled_signal} it is possible to reach
+
+\begin{equation}
+	X(\tilde{f}) = \frac{1}{T} \sum_{n=-\infty}^{\infty} X_a(\frac{\tilde{f}- n}{T})
+\end{equation}

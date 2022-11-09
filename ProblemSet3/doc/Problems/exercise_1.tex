@@ -1,0 +1,128 @@
+\section{Problem 1}
+
+\subsection{Instruction}
+
+In lecture we introduced the concept of code-carrier divergence by considering
+the effect of the dispersive ionosphere on a simplified signal impinging on a
+GNSS receiver:
+
+\begin{equation}
+	r(t) = C(t) sin(2 \pi f_c t)
+\end{equation}
+
+Where $C(t)$ is a spreading waveform with null-to-null bandwidth $B_1$ of
+approximately 2 MHz and $f_c$ is a GNSS L-band carrier frequency (somewhere
+between 1.2 and 1.6 GHz). We subsequently expressed $r(t)$ as a function of the
+Fourier transform $\tilde{C}(f) = \mathcal{F}[C(t)]$:
+
+\begin{equation}
+	r(t) = \int_{-\infty}^{\infty} \frac{\tilde{C}(f)}{2j} [ e^{j 2 \pi (f + f_c) t}
+		- e^{j 2 \pi (f - f_c) t}] df
+	\label{eq:r_signal}
+\end{equation}
+
+We see from this equation that $r(t)$ is made up of two monochromatic signals
+that get weighted by $\tilde{C}(f)/2j$ (a complex number) and integrated over
+all $f$. For a particular value of $f$, the first monochromatic signal looks
+like
+
+\begin{equation}
+	\frac{\tilde{C}(f)}{2j} e^{j 2 \pi (f + f_c) t}
+	\label{eq:monochromatic}
+\end{equation}
+
+If this signal were to pass through the ionosphere, it would experience an
+excess phase delay given by
+
+\begin{equation}
+	\Delta \tau_{p,H} = \frac{-K}{(f + f_c)^2}
+\end{equation}
+
+Thus, the received signal corresponding to \ref{eq:monochromatic} could be written
+
+\begin{equation}
+	\frac{\tilde{C}(f)}{2j} e^{j 2 \pi (f + f_c) (t - \Delta \tau_{p,H})}
+\end{equation}
+
+Following this reasoning, we can rewrite \ref{eq:r_signal} as
+
+\begin{equation}
+	r(t) = \int_{-\infty}^{\infty} \frac{\tilde{C}(f)}{2j}
+	[ e^{j 2 \pi (f + f_c) (t - \Delta \tau_{p,H})}
+		- e^{j 2 \pi (f - f_c) (t - \Delta \tau_{p,L})}] df
+	\label{eq:r_signal_rewrite}
+\end{equation}
+
+where $\Delta \tau_{p,H}$ is the ionospheric delay (excess phase delay) for the
+frequency constituent at the "high" frequency $f + f_c$ and
+
+\begin{equation}
+	\Delta \tau_{p,L} = \frac{-K}{(f - f_c)^2}
+\end{equation}
+
+is the ionospheric delay for the frequency constituent at the "low" frequency
+$f - f_c$.
+
+With some work it can be shown that \ref{eq:r_signal_rewrite} reduces to
+
+\begin{equation}
+	r(t) = C(t- \Delta\tau_g) sin[2 \pi f_c (t-\Delta\tau_p)]
+\end{equation}
+
+where $\Delta\tau_g = K/f_c^2$ is the so-called group delay and
+$\Delta\tau_p = -K/f_c^2$ is the so-called phase delay, with $K=40.3 TEC/c$.
+Derive this latter expression for $r(t)$ from \ref{eq:r_signal_rewrite}.\\
+
+\textbf{Hints:} Plug the expressions for $\Delta \tau_{p,L}$ and $\Delta \tau_{p,H}$ into
+\ref{eq:r_signal_rewrite}. Distribute the $(f+f_c)$ and the $(f-f_c)$. Recognize
+that the effective range of the integral is small compared to $f_c$ (explain why).
+This allows you to approximate a term $K/(f_c^2-f^2)$, which emerges as you
+simplify, as $K/f_c^2$ over the range of integration.
+
+\subsection{Solution}
+
+Plugging the expressions for $\Delta \tau_{p,L}$ and $\Delta \tau_{p,H}$ into
+\ref{eq:r_signal_rewrite}.
+
+\begin{equation*}
+	r(t) = \int_{-\infty}^{\infty} \frac{\tilde{C}(f)}{2j}
+	[ e^{j 2 \pi (f + f_c) (t - \frac{-K}{(f + f_c)^2})}
+		- e^{j 2 \pi (f - f_c) (t - \frac{-K}{(f - f_c)^2})}] df
+\end{equation*}
+
+Distributing the $(f+f_c)$ and the $(f-f_c)$.
+
+\begin{eqnarray*}
+	r(t) &=& \int_{-\infty}^{\infty} \frac{\tilde{C}(f)}{2j}
+	\left[ e^{j 2 \pi [(f + f_c) t + \frac{K}{(f + f_c)}]}
+		- e^{j 2 \pi [(f - f_c) t + \frac{K}{(f - f_c)}]} \right] df \\
+	&=& \int_{-\infty}^{\infty} \frac{\tilde{C}(f)}{2j}
+	\left[ e^{j 2 \pi [(f + f_c) t + \frac{K}{(f + f_c)}]}
+		- e^{j 2 \pi [(f - f_c) t + \frac{K}{(f - f_c)}]} \right] df \\
+	&=& \int_{-\infty}^{\infty} \frac{\tilde{C}(f)}{2j}
+	\left[ e^{j 2 \pi [(f + f_c) t + \frac{K}{(f + f_c)} \frac{(f - f_c)}{(f - f_c)}]}
+		- e^{j 2 \pi [(f - f_c) t + \frac{K}{(f - f_c)} \frac{(f + f_c)}{(f + f_c)}]} \right] df \\
+	&=& \int_{-\infty}^{\infty} \frac{\tilde{C}(f)}{2j}
+	\left[ e^{j 2 \pi [(f + f_c) t + \frac{K(f - f_c)}{(f^2 - f_c^2)}]}
+		- e^{j 2 \pi [(f - f_c) t + \frac{K(f + f_c)}{(f^2 - f_c^2)}]} \right] df
+\end{eqnarray*}
+
+Recognizing that the effective range of the integral is small compared to $f_c$
+allows to approximate $K/(f_c^2 - f^2) \approx K/f_c^2$. Note that the carrier
+frequency is $~GHz$ but the bandwidth of the spreading code $\tilde{C}(f)$ is
+only $~MHz$. Therefore, it is safe to assume the approximation is going to hold
+strongly.
+
+\begin{eqnarray*}
+	r(t) &=& \int_{-\infty}^{\infty} \frac{\tilde{C}(f)}{2j}
+	\left[ e^{j 2 \pi [(f + f_c) t + \frac{K(f - f_c)}{f_c^2}]}
+		- e^{j 2 \pi [(f - f_c) t + \frac{K(f + f_c)}{f_c^2}]} \right] df \\
+	&=& \int_{-\infty}^{\infty} \frac{\tilde{C}(f)}{2j}
+	\left[ e^{j 2 \pi [f(t - \frac{K}{f_c^2}) + f_c(t + \frac{K}{f_c^2})]}
+		- e^{j 2 \pi [f(t - \frac{K}{f_c^2}) - f_c(t + \frac{K}{f_c^2})]} \right] df \\
+	&=& \int_{-\infty}^{\infty} \frac{\tilde{C}(f)}{2j}
+	e^{j 2 \pi f(t - \frac{K}{f_c^2})}
+	\left[ e^{j 2 \pi f_c(t + \frac{K}{f_c^2})}
+		- e^{- j 2 \pi f_c(t + \frac{K}{f_c^2})} \right] df \\
+	&=& C(t- \Delta\tau_g) sin[2 \pi f_c (t-\Delta\tau_p)]
+\end{eqnarray*}

@@ -1,0 +1,49 @@
+============================ scintdef.txt ===================================
+This file defines the columns of data in the scint.log files produced by the
+GRID software receiver. Each scint.log file contains time-stamped
+scintillation measurements. See channeldef.txt for a definition of ORT. ORT
+time stamps indicate approximately the time at which the measurement interval
+ends. Phase-derived measurements are formed by comparison with a reference
+channel. All channels are referenced to reference channel 1 except for
+reference channel 1, which is referenced to reference channel 2.
+=============================================================================
+
+
+Column              Quantity
+
+1 ----------- ORT week number. 
+
+2 ----------- ORT whole seconds of week.
+
+3 ----------- ORT fractional second. 
+
+4 ----------- Measurement interval length in seconds.
+
+5 ----------- S4 for the whole interval.
+
+6 ----------- S4 for the first half of the interval.
+
+7 ----------- S4 for the second half of the interval.
+
+8 ----------- sigma phi for the whole interval in cycles.
+
+9 ----------- sigma phi for the first half of the interval in cycles.
+
+10 ---------- sigma phi for the second half of the interval in cycles.
+
+11 ---------- tau0 for the whole interval in seconds.  A tau0 value of -1
+              indicates that scintillation was too weak or too slow to enable
+              calculation of tau0 or that computation of tau0 is disabled.
+
+12 ---------- SPR (scintillation power ratio) for the whole interval in dB.
+
+13 ---------- Reference indicator:
+              0       Normal channel
+              1       Reference channel 1
+              2       Reference channel 2
+
+14 ---------- Signal type (see channeldef.txt for list of possible types).
+
+15 ---------- Transmitter identification number (TXID).
+
+=============================================================================

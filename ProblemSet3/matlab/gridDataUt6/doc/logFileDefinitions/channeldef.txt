@@ -1,0 +1,87 @@
+============================ channeldef.txt =================================
+This file defines the columns of data in the channel.log file produced by the
+GRID software receiver. Two types of measurement time stamps are given in
+channel.log, both corresponding to the same event: the observables measurement
+event:
+
+    (1) Raw Receiver Time (RRT): This time stamp is linked directly to the
+        receiver's sampling clock.  It starts at zero when the receiver is
+        initialized and is never interrupted or adjusted by the code.
+
+    (2) Offset Receiver Time (ORT): This time stamp is equal to RRT plus an
+        offset that brings the result close (within a few ms) to true GPS
+        time:
+
+        ORT = RRT + tOffset
+
+GRID automatically adjusts tOffset every so often to bring ORT within a few ms
+of true GPS time.  When tOffset is adjusted, a small jump in ORT is introduced
+and concomitant shifts occur in the pseudorange and carrier phase data.  For
+maximum resolution, ORT is given in separate columns for week, whole second,
+and fractional seconds.
+=============================================================================
+
+
+Column        Quantity
+
+1 ----------- RRT week number.
+
+2 ----------- RRT seconds of week.
+
+3 ----------- ORT week number.  A value of 9999 indicates that the ORT is not
+              yet valid.  
+
+4 ----------- ORT whole seconds of week.
+
+5 ----------- ORT fractional second. 
+
+6 ----------- Apparent Doppler frequency in Hz (positive for approaching TXs).
+
+7 ----------- Beat carrier phase in cycles (changes in the same sense as
+              pseudorange).
+
+8 ----------- Pseudorange in meters.
+
+9 ----------- Carrier-to-noise ratio (C/N0) in dB-Hz.
+
+10 ---------- Flag indicating whether (1) or not (0) the pseudorange and
+              carrier phase measurements are valid.
+
+11 ---------- A flag indicating whether (1) or not (0) an anomaly has been
+              detected in the PLL's phase tracking.  By anomaly is meant a
+              carrier cycle slip or unusually large phase error.  Phase
+              measurements should be regarded with distrust if this flag is
+              asserted.
+
+12 ---------- Channel status indicator:
+              0       STATUS_NULL
+              1       STATUS_ALLOCATED
+              2       STATUS_ACQUIRED
+              3       STATUS_SYMBOL_LOCK
+              4       STATUS_FREQ_LOCK
+              5       STATUS_PHASE_LOCK
+              6       STATUS_DATA_LOCK
+
+13 ---------- Signal type:
+              0       GPS_L1_CA           // GPS L1 civil C/A code 
+              1       GPS_L2_CM           // GPS L2 civil M code
+              2       GPS_L2_CL           // GPS L2 civil L code
+              3       GPS_L2_CLM          // GPS L2 M+L combined code 
+              4       GPS_L1_CA_ALT1      // GPS L1 civil C/A code -- alternate 1
+              5       CDMA_UHF_PILOT_I    // Cellular CDMA pilot code on I channel
+              6       CDMA_UHF_PILOT_Q    // Cellular CDMA pilot code on Q channel
+              7       CDMA_UHF_SYNC_I     // Cellular CDMA sync code on I channel
+              8       CDMA_UHF_SYNC_Q     // Cellular CDMA sync code on Q channel
+              9       CDMA_UHF_PILOT_IQ   // Cellular CDMA pilot code on I+Q channel
+              10      CDMA_UHF_PILOT_SYNC_I  // Cellular CDMA pilot+sync combined code on I channel
+              11      CDMA_UHF_PILOT_SYNC_Q  // Cellular CDMA pilot+sync combined code on Q channel
+              12      CDMA_UHF_PILOT_SYNC_IQ // Cellular CDMA pilot+sync combined code on I+Q channel
+              13      WAAS_L1_I           // WAAS L1 on I channel 
+              14      WAAS_L1_I_ALT1      // WAAS L1 on I channel -- alternate 1
+
+
+14 ---------- Transmitter identification number (TXID).
+
+
+=============================================================================
+

@@ -1,0 +1,26 @@
+============================= ionodef.txt ===================================
+This file defines the columns of data in the iono.log files produced by the
+GRID software receiver. Each iono.log file contains time-stamped ionospheric
+measurements. See channeldef.txt for a definition of ORT. ORT time stamps
+indicate approximately the time at which the measurements apply.
+=============================================================================
+
+
+Column        Quantity
+
+1 ----------- ORT week number. 
+
+2 ----------- ORT whole seconds of week.
+
+3 ----------- ORT fractional second. 
+
+4 ----------- Pseudorange-derived slant total electron content (STEC) along
+              the path from the receiver to the transmitter, in TEC units
+              (TECU).
+
+5 ----------- Change in phase-derived STEC since the previous measurement, in
+              TEC units (TECU).              
+
+6 ----------- Transmitter identification number (TXID).
+
+=============================================================================

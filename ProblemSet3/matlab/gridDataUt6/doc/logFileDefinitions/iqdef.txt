@@ -1,0 +1,49 @@
+=============================== iqdef.txt ===================================
+This file defines the columns of data in the iq.log files produced by the GRID
+software receiver.  The iq.log files contain high-rate in-phase and quadrature
+symaccumulation and beat carrier phase data.  A symaccumulation is a coherent
+accumulation that is time-aligned with data modulation (if any) and of length
+equal to the minimum of the symbol interval and the standard accumulation
+interval.  See channeldef.txt for definitions of RRT and ORT.  Time stamps in
+RRT and ORT correspond to the end of the interval over which each in-phase and
+quadrature accumulation was computed.
+=============================================================================
+
+
+Column        Quantity
+
+1 ----------- RRT week number.
+
+2 ----------- RRT seconds of week.
+
+3 ----------- ORT week number. 
+
+4 ----------- ORT whole seconds of week.
+
+5 ----------- ORT fractional second. 
+
+6 ----------- Beat carrier phase in cycles at the specified RRT and ORT;
+              changes in the opposite sense as pseudorange but is consistent
+              with the IQ data so that the instantaneous high-rate beat
+              carrier phase is this quantity plus atan2(Q,I)/2/pi.
+
+7 ----------- In-phase symaccumulation over the interval ending at the
+              specified RRT and ORT, in receiver front-end units.  If the
+              signal is data modulated, then the data bit modulation has been
+              wiped off assuming the data bit value below.
+
+8 ----------- Quadrature symaccumulation over the interval ending at the
+              specified RRT and ORT, in receiver front-end units. If the
+              signal is data modulated, then the data bit modulation has been
+              wiped off assuming the data bit value below.
+
+9 ----------- Data symbol (0 or 1) assumed by the phase tracking algorithm to
+              be in effect over the symaccumulation interval ending at the
+              specified RRT and ORT.  For data-free signals (e.g., pilot
+              signals) this value is set to 1.
+
+10 ---------- Signal type (see channeldef.txt for list of possible types).
+
+11 ---------- Transmitter identification number (TXID).
+
+=============================================================================

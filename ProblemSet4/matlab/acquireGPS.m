@@ -6,8 +6,10 @@ Tc = 1e-3/Nc;
 code = generatePRN(TXID); 
 
 % generate data for the k-th accumulation 
-Nk = floor(nTc*(Nc*Tc)/T);
-Ta = Nk*T;
+% Nk = floor(nTc*(Nc*Tc)/T);
+% Ta = Nc*Tc;
+Ta = nTc*Nc*Tc;
+Nk = floor(Ta/T);
 tau = tau(1:Nk);
 x   = x(1:Nk);
 
@@ -15,7 +17,7 @@ x   = x(1:Nk);
 code = repmat(code, [nTc 1] );
 C = oversampleSpreadingCode(code, T/Tc, 0, Nk, Nc);
 
-epsilon = 5*(1/Ta);
+epsilon = 50*(nTc/Ta);
 fDk_hat = -epsilon:fStep:epsilon;
 M = zeros(Nk,length(fDk_hat));
 if strcmp(method, 'FFT')
@@ -32,16 +34,6 @@ if strcmp(method, 'FFT')
         
         M(:,fDk_idx) = abs(zk).^2;
     end
-    
-    % Find the maximum Sk in the 2D-grid
-    [max_Sk, max_idx] = max(M(:));
-    [n, fDk_idx]=ind2sub(size(M),max_idx);
-    
-    % Estimates
-    isAcquired = max_Sk > 5e9;  % detection threshold
-    fdk_hat = fDk_hat(fDk_idx); % Hz
-    tsk_hat = tau(n)*1e6;       % us 
-
 else
     parfor fDk_idx = 1:length(fDk_hat)
         for n = 1:nStep:Nk            
@@ -57,24 +49,28 @@ else
             M(n, fDk_idx) = abs(Sk)^2;
         end
     end
-
-    % Find the maximum Sk in the 2D-grid
-    [max_Sk, max_idx] = max(M(:));
-    [n, fDk_idx]=ind2sub(size(M),max_idx);
-    
-    % Estimates
-    isAcquired = max_Sk > 3e9;
-    fdk_hat = fDk_hat(fDk_idx); % Hz
-    tsk_hat = tau(n)*1e6;      % us 
 end
 
-% DEBUG
+% % DEBUG
 tau_jk = tau(1:Nk)*1e6;
-h = surf(fDk_hat, tau_jk, M);
+ii = find(tau_jk<1000);
+figure();
+h = surf(fDk_hat, tau_jk(ii), M(ii,:));
 set(h,'LineStyle','none')
 title('2D grid - S_k')
 xlabel('$\hat{f}_{Dk} [Hz]$','Interpreter','latex')
 ylabel('$\tau_{jk} [us]$','Interpreter','latex')
+
+% Find the maximum Sk in the 2D-grid
+[max_Sk, max_idx] = max(M(:));
+[n, fDk_idx]=ind2sub(size(M),max_idx);
+
+% Estimates
+isAcquired = max_Sk > nTc*3e9;
+fdk_hat = fDk_hat(fDk_idx); % Hz
+tsk_hat = tau(n)*1e6;      % us 
+
+
 
 end
 

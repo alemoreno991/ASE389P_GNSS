@@ -48,7 +48,9 @@ Analizing the given signal it's possible to manually tag the moment in which the
 train passed in front of the receiver. Figure~\ref{fig:spectrogram_original}
 shows how the power density is concentrated at higher frequency before 3.069 sec
 and drops rapidly after that. This indicates the exact moment at which the train
-passed infront of the receiver.
+passed infront of the receiver. Note that the frequency resolution of this
+spectrogram is not good but the time resolution is pretty good. This allows for
+better visual tuning.
 
 \begin{figure}[H]
 	\centering
@@ -59,5 +61,27 @@ passed infront of the receiver.
 
 This, approach lead to $xObs = 56.8$ and $dObs = 10$.
 
+Another way to get better results would be to iteratively change the values of
+xObs and dObs in a neighborhood of our previous guess and try to verify if the
+spectrogram of our guess is equal to the spectrogram of the original signal. A
+very rudimentary way to do it would be to just substract the matrices that
+store the spectrogram and look for the iteration that minimizes that substraction
+maybe just using the max norm ($||A||_{max}$). Figure~\ref{fig:spectrogram2_original}
+and \ref{fig:spectrogram2_zoomed_original} show the type of spectrogram I would
+use in the aforementioned algorithm because it's has much better frequency
+resolution.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.9\textwidth]{figs/ex1_spectrogram2_orig.png}
+	\caption{Spectrogram of the given signal.}
+	\label{fig:spectrogram2_original}
+\end{figure}
 
 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.9\textwidth]{figs/ex1_spectrogram2_zoomed_orig.png}
+	\caption{Zoomed spectrogram of the given signal.}
+	\label{fig:spectrogram2_zoomed_original}
+\end{figure}

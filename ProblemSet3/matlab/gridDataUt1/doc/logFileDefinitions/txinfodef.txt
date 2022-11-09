@@ -1,0 +1,34 @@
+============================ txinfodef.txt ==================================
+This file defines the columns of data in the txinfo.log files produced by the
+GRID software receiver.  Each txinfo.log file contains time-stamped
+transmitter information in the form of azimuth angle, elevation angle, and
+health status for tracked transmitters. See channeldef.txt for a definition of
+ORT.  ORT time stamps indicate the time at which the transmitter information
+applies.
+=============================================================================
+
+
+Column        Quantity
+
+1 ----------- ORT week number. 
+
+2 ----------- ORT whole seconds of week.
+
+3 ----------- ORT fractional second. 
+
+4 ----------- Azimuth in degrees.
+
+5 ----------- Elevation in degrees.
+
+6 ----------- Health status, where zero is nominal.
+
+7 ----------- System:
+              0       GPS
+              1       GALILEO
+              2       GLONASS
+              3       CDMA
+              4       WAAS
+
+8 ----------- Transmitter identification number (TXID).
+
+=============================================================================

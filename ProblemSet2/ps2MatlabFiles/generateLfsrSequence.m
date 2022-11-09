@@ -30,7 +30,9 @@ lfsrSeq = [];
 while (m < 2^n - 1)
     output = aVec(n);
     ai   = mod( sum(aVec(ciVec)), 2);
-    aVec = [ai; aVec(1:end-1)];
+    aVec = [ai; aVec(1:end-1)] % Allows to see the state (I only care about 
+                               % the last one). I prefer not to alter the 
+                               % signature of the function.
 
     lfsrSeq = [lfsrSeq; output];
     m = m+1;

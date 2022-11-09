@@ -1,0 +1,41 @@
+============================ navsoldef.txt ==================================
+This file defines the columns of data in the navsol.log files produced by the
+GRID software receiver. Each navsol.log file contains time-stamped navigation
+solutions that represent the receiver's best estimate of position, velocity,
+receiver clock error, and receiver clock error rate as calculated from data
+provided by all participating receiver banks.  See channeldef.txt for a
+definition of ORT.  ORT time stamps indicate the time at which the navigation
+solution applies.
+=============================================================================
+
+
+Column        Quantity
+
+1 ----------- ORT week number. 
+
+2 ----------- ORT whole seconds of week.
+
+3 ----------- ORT fractional second. 
+
+4,5,6 ------- X,Y,Z receiver antenna position expressed in meters the ECEF
+              reference frame.
+
+7 ----------- deltR, the receiver clock error expressed in equivalent meters.
+              True GPS time (TGT) is related to deltR by TGT = ORT - deltR/c.
+
+8,9,10 ------ Xdot,Ydot,Zdot receiver antenna velocity relative to the ECEF
+              reference frame expressed in meters per second in the ECEF
+              frame.
+
+11 ---------- deltRdot, the receiver clock error rate expressed in equivalent
+              meters per second.
+
+12 ---------- Flag returned from the navigation solver:
+              0   SOL_CONVERGED, 
+              1   SOL_FAILED_TO_CONVERGE, 
+              2   SOL_TOO_FEW_SVS_AFTER_PRUNING,
+              3   SOL_ITAR_VIOLATION,
+              4   SOL_CONVERGED_BUT_LARGE_RESIDUAL,
+              5   SOL_TOO_FEW_SVS
+
+=============================================================================
