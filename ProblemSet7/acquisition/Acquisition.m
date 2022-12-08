@@ -203,7 +203,8 @@ classdef Acquisition
             result.fDk_hat = config.fDVtr(fDk_idx); % Hz
             result.tsk_hat = tau(n);                % sec
 
-            result.Sk = Sk./obj.varIQ;
+            result.Sk = Sk;
+            result.sigmaIQ = sqrt(obj.varIQ);
         end
     end
 end
