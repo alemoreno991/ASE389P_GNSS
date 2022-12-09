@@ -1,23 +1,23 @@
-function [early, prompt, late] = correlation(xVeck, tsk_hat, thetaHat, vk, cfg)
+function [early, prompt, late] = correlation(xVeck, tsk_hat, thetaHat, fD_hat, cfg)
     % Time vector covering the accumulation
     tVec = [0:cfg.Nk-1]'*cfg.Ts;
 
     % Generate the phase argument of the local carrier replica
-    ThetaVec = [2*pi*(cfg.fIF + vk)*tVec + thetaHat];
+    ThetaVec = [2*pi*(cfg.fIF + fD_hat)*tVec + thetaHat];
     
     % Generate the local carrier replica
     carrierVec = exp(-1i*ThetaVec);
     
     % Generate the +/-1-valued code (not yet oversampled)
-    cacode = 2*cacodegn(cfg.txId) - 1;     
-    
+    cacode = generatePRN(cfg.txId);     
+    cacode = repmat(cacode, [cfg.nTc 1] );
+
     % Oversample the code
-    Neml = floor(cfg.eml/cfg.Fs);   % number of samples to advance/delay 
-    Ndelay = floor(tsk_hat/cfg.Fs); % code-delay number of samples 
-    cacode_oversampled_prompt = oversampleSpreadingCode(cacode,cfg.Ts/cfg.Tc, 0, cfg.Nk, 1023);
-    cacode_oversampled_prompt = circshift(cacode_oversampled_prompt, Ndelay);
-    cacode_oversampled_early  = circshift(cacode_oversampled_prompt, -Neml);
-    cacode_oversampled_late   = circshift(cacode_oversampled_prompt,  Neml);
+    code_delay = -tsk_hat/cfg.Tc;
+    eml_delay  = -cfg.eml/(2*cfg.Tc);
+    cacode_oversampled_prompt = oversampleSpreadingCode(cacode, cfg.Ts/cfg.Tc, code_delay, cfg.Nk, cfg.Nc);
+    cacode_oversampled_early  = oversampleSpreadingCode(cacode, cfg.Ts/cfg.Tc, code_delay-eml_delay, cfg.Nk, cfg.Nc);
+    cacode_oversampled_late   = oversampleSpreadingCode(cacode, cfg.Ts/cfg.Tc, code_delay+eml_delay, cfg.Nk, cfg.Nc);
     
     % Generate the full local replica, with both code and carrier
     lpVeck = carrierVec.*cacode_oversampled_prompt;
@@ -30,7 +30,19 @@ function [early, prompt, late] = correlation(xVeck, tsk_hat, thetaHat, vk, cfg)
     late.Sk   = sum(xVeck.*llVeck);
 
     % Examine the squared magnitude of Sk in dB.
-    prompt.SkdB = 10*log10(abs(prompt.Sk)^2);
+    prompt.SkdB = 10*log10(abs(prompt.Sk)^2)
     early.SkdB  = 10*log10(abs(early.Sk )^2);
     late.SkdB   = 10*log10(abs(late.Sk  )^2);
+
+%     % DEBUG STUFF
+%     if early.SkdB > prompt.SkdB || late.SkdB > prompt.SkdB
+%         display('Sk (prompt) not the biggest')
+%     end
+
+%     idx = find(tVec>tsk_hat, floor(cfg.Nk/10), 'first');
+%     figure(); 
+%     plot(tVec(idx)-tsk_hat, cacode_oversampled_prompt(idx)); 
+%     hold on; 
+%     stem(linspace(0,1e-3,1023), cacode(1:1023))
+%     legend('oversampled', 'original')
 end

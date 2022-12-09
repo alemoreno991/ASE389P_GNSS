@@ -1,4 +1,4 @@
-classdef Tracker
+classdef Tracker < handle
     %TRACKER Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -28,11 +28,13 @@ classdef Tracker
             obj.sMix = cfg.sMix;
             obj.Tc   = cfg.Tc;
             obj.fIF  = cfg.fIF;
-            obj.Fs   = cfg.Fs;
+            obj.Ts   = cfg.Ts;
+            obj.Fs   = 1/obj.Ts;
             obj.fc   = cfg.fc;
+            obj.Ta   = cfg.Ta;
 
             % |Sk|^2 running average buffer.
-            obj.bufferSk = max(estimationSV.Sk)*ones(1, cfg.bufferSk.lenght); % used for moving average
+            obj.bufferSk = max(estimationSV.Sk(:))*ones(1, cfg.bufferSk.lenght); % used for moving average
             
             % Instantiate the loop filter
             [obj.pll.Ad, obj.pll.Bd, obj.pll.Cd, obj.pll.Dd, obj.pll.Bn_act] = ...
@@ -44,15 +46,15 @@ classdef Tracker
             % guaranteed to obtain `xkp1 = xk` when the error `ek` is 0.  
             idx = find(diag(eigenVal) == 1, 1); % Let's take the first one we find (why not?)
             % Noticing the structure of the problem we can do the following (ad-hoc solution) 
-            obj.pll.vk = 2*pi*estimationSV.fD; % estimated phase rate [rad/s]
-            obj.pll.xk = obj.pll.vk/(s.Cd*eigenVtr(:,idx)) * eigenVtr(:,idx); 
+            obj.pll.vk = 2*pi*estimationSV.fDk_hat; % estimated phase rate [rad/s]
+            obj.pll.xk = obj.pll.vk/(obj.pll.Cd*eigenVtr(:,idx)) * eigenVtr(:,idx); 
             obj.pll.xkp1 = obj.pll.xk;
             
             % Delay loop parameters.
             obj.dll.Bn_target = cfg.dll.Bn;
             obj.dll.IsqQsqAvg = mean(obj.bufferSk);
             obj.dll.sigmaIQ   = cfg.sigmaIQ;
-            obj.dll.vp        = obj.sMix*vk/cfg.fc;
+            obj.dll.vp        = obj.sMix*obj.pll.vk/cfg.fc;
             obj.dll.Tc        = obj.Tc;
             obj.dll.Ip        = 0; obj.dll.Qp        = 0;
             obj.dll.Ie        = 0; obj.dll.Qe        = 0;
@@ -65,19 +67,21 @@ classdef Tracker
             obj.correlator.Ts          = obj.Ts;    % Sampling time interval in seconds
             obj.correlator.Ta          = obj.Ta;    % accumulation period
             obj.correlator.Tc          = obj.Tc;    % Nominal chip interval in seconds
+            obj.correlator.Nc          = cfg.Nc;
+            obj.correlator.nTc         = cfg.nTc;
             obj.correlator.eml         = obj.Tc/2;  % delay between early and late taps on code, sec
             obj.correlator.Nk          = floor(obj.Ta/obj.Ts); % Nk is the number of samples is one 1-ms accumulation.  It's ok for this number to be approximate
 
             % Use the acquisition estimation to initialize tracking
             obj.theta_hat = 0; % Initialize the beat carrier phase estimate
-            obj.fD_hat    = estimationSV.fD; % Initialize the doppler
-            obj.tsk_hat   = estimationSV.tsk_hat; % Initialize the code-delay
+            obj.fD_hat    = estimationSV.fDk_hat; % Initialize the doppler
+            obj.tsk_hat   = mod(estimationSV.tsk_hat, 1e-3); % Initialize the code-delay
         end
         
         function [result] = update(obj, xVeck)
             % Perform correlations
-            [early, prompt, late] = correlation(xVeck, obj.tsk_hat, ...
-                                           obj.theta_hat, obj.fD_hat, cfg);
+            [early, prompt, late] = correlation(xVeck, ...
+                    obj.tsk_hat, obj.theta_hat, obj.fD_hat, obj.correlator);
 
             % Update the moving window average of |Sk|^2.
             obj.bufferSk = [ abs(prompt.Sk).^2, obj.bufferSk(1:end-1) ];
@@ -86,22 +90,28 @@ classdef Tracker
             obj.pll.Ip = real(prompt.Sk); obj.pll.Qp = imag(prompt.Sk);
             obj.pll.xk = obj.pll.xkp1;
             [obj.pll.xkp1, obj.pll.vk] = updatePll(obj.pll);
-            obj.fD_hat   = obj.sMix * obj.pll.vk;                          % TODO: I'm not sure if the `high/low-side` mixing needs to be considered here 
-            obj.theta_hat= obj.theta_hat + obj.fD_hat*obj.Ta;
 
             % Single update step of a delay tracking loop 
-            obj.dll.vp        =  obj.sMix * obj.pll.vk/(2*pi*obj.fc); % applying Sm/wc gain.
-            obj.dll.IsqQsqAvg = mean(obj.bufferSk);
-            dlls.Ie = real(early.Sk);  dlls.Qe = imag(early.Sk);
-            dlls.Ip = real(prompt.Sk); dlls.Qp = imag(prompt.Sk);
-            dlls.Il = real(late.Sk);   dlls.Ql = imag(late.Sk);
-            vTotal = updateDll(dlls);
-            obj.tsk_hat = obj.tsk_hat + (1-vTotal)*(obj.Tc*obj.Nc);
-
+%             obj.dll.vp        =  obj.sMix * obj.pll.vk/(2*pi*obj.fc); % applying Sm/wc gain.
+%             obj.dll.IsqQsqAvg = mean(obj.bufferSk);
+%             obj.dll.Ie = real(early.Sk);  obj.dll.Qe = imag(early.Sk);
+%             obj.dll.Ip = real(prompt.Sk); obj.dll.Qp = imag(prompt.Sk);
+%             obj.dll.Il = real(late.Sk);   obj.dll.Ql = imag(late.Sk);
+%             vTotal = updateDll(obj.dll);
+            vTotal = 0; % TODO: unbreak the loop later
+            
             % Results of the update
-            result.fD       = obj.fD;
-            result.theta    = obj.theta;
-            result.tsk      = obj.tsk;
+            obj.tsk_hat = obj.tsk_hat - vTotal * (obj.Ta);
+            obj.tsk_hat = mod(obj.tsk_hat,1e-3);
+            
+            obj.theta_hat= obj.theta_hat + 2*pi*obj.fD_hat*obj.Ta;
+            obj.fD_hat   = obj.pll.vk/(2*pi);                          % TODO: I'm not sure if the `high/low-side` mixing needs to be considered here 
+
+            result.fD_hat       = obj.fD_hat;
+            result.theta_hat    = obj.theta_hat;
+            result.tsk_hat      = obj.tsk_hat;
+            result.SkdB         = prompt.SkdB;
+            result.Sk           = prompt.Sk;
         end
     end
 end

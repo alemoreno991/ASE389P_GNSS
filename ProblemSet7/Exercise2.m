@@ -5,11 +5,11 @@ addpath("acquisition")
 %--------------------------------------------------------------------------
 % --------------------    Load input signal     ---------------------------
 % --------------------            &             ---------------------------
-% -------------------- represent it in baseband ---------------------------
+% -------------------- represent it in baseb-and ---------------------------
 %--------------------------------------------------------------------------
 filename = 'dfDataHead.bin';
 fc = 1575.42e6;
-Tfull   = 1;          % Time interval of data to load (1 ms = 1 data chip).
+Tfull   = 0.2;          % Time interval of data to load (1 ms = 1 data chip).
 Fs      = 40e6/7;     % Sampling frequency (Hz).
 bandpass.flag = true; % The file has the signal in bandpass representation
 bandpass.fIF = 1.405396825396879e6; % Intermediate freq. of the bandpass
@@ -21,28 +21,27 @@ input = InputSignal(filename, Tfull, Fs, bandpass, 'high');
 % --------------------         Acquisition      ---------------------------
 %--------------------------------------------------------------------------
 cfgAcquisition.method = 'FFT';
-cfgAcquisition.fDVtr  = -50000:100:0;
+cfgAcquisition.fDVtr  = -5000:100:5000;
 cfgAcquisition.nStep  = 1;
 cfgAcquisition.nTc    = 10;
 cfgAcquisition.nAccum = 2;
 
-detected = [];
-fDk_hat = [];
-tsk_hat = [];
-CN0 = [];
 rcv = Acquisition(tau, xVec, Ts, cfgAcquisition);
-for TXID = 1:32
+for TXID = 14:14
     result{TXID} = rcv.acquireFine(tau, xVec, Ts, TXID, cfgAcquisition);
 end
 
+cfgAcquisition.nTc = 1;% TODO: fix this later
 %--------------------------------------------------------------------------
 % --------------------          Tracking       ----------------------------
 %--------------------------------------------------------------------------
 cfgTrack.fc     = fc;
-cfgTrack.fIF    = bandpass.fIF;
-cfgTrack.Fs     = Fs;
-cfgTrack.Tc     = 1e-3;
-cfgTrack.Ta     = cfgAcquisition.nTc * cfgTrack.Tc;
+cfgTrack.fIF    = 0;
+cfgTrack.Ts     = Ts;
+cfgTrack.Nc     = 1023;
+cfgTrack.Tc     = 1e-3/cfgTrack.Nc;
+cfgTrack.nTc    = cfgAcquisition.nTc;
+cfgTrack.Ta     = cfgAcquisition.nTc * cfgTrack.Tc * cfgTrack.Nc;
 cfgTrack.sMix   = sMix;
 
 cfgTrack.bufferSk.lenght = 100;
@@ -51,38 +50,62 @@ cfgTrack.sigmaIQ         = result{TXID}.sigmaIQ;
 cfgTrack.pll.Bn     = 10;
 cfgTrack.pll.order  = 3;
 
-cfgTrack.dll.Bn     = 0.01;
+cfgTrack.dll.Bn     = 0.1;
 
-tracker = Tracker(estimationSV, TXID, cfg);
+tracker = Tracker(result{TXID}, TXID, cfgTrack);
 % Run the feedback tracking loop
-for jk= jk0:Nk:length(tau)
+jk0 = floor(cfgAcquisition.nAccum * cfgAcquisition.nTc * cfgTrack.Tc * cfgTrack.Nc/ Ts);
+Nk = floor( cfgAcquisition.nTc * cfgTrack.Tc *cfgTrack.Nc / Ts);
+theta_hat = [];
+fDk_hat = [];
+tsk_hat = [];
+SkdB = [];
+Sk = [];
+for jk= jk0:Nk:length(xVec)-Nk
     xVeck = xVec(jk:jk+Nk-1); % Signal for the k-th accumulation interval
-    result = tracker.update(xVeck);
+    track_result = tracker.update(xVeck);
+    fDk_hat = [fDk_hat track_result.fD_hat];
+    theta_hat = [theta_hat track_result.theta_hat];
+    tsk_hat = [tsk_hat track_result.tsk_hat];
+    SkdB = [SkdB track_result.SkdB];
+    Sk = [Sk track_result.Sk];
 end
 
-%% plot bla
-% Plot fake signal
-figure(2), clf
-subplot(211)
-hold on, grid on
-plot(taujv, signal)
-xlim([0 5/fIF])
-xlabel('Time (s)')
-ylabel('Amplitude')
-title('Signal (One Period)')
+%% --------------------------- Plots ------------------------------------%%
+close all
+t = tau(3*Nk:Nk:end);
 
-subplot(212)
-hold on, grid on
-plot(taujv, th_tru)
-plot(taujv, record.phase_est, '--')
-xlim([0 Tmax])
+%------ |Sk|^2 
+figure(), clf
+plot(t, SkdB, LineWidth=2)
+title('$|Sk|^2$', Interpreter='latex')
+xlabel('time [s]')
+ylabel('$|Sk|^2$ [dB]', Interpreter='latex')
 
-figure(3), clf
-subplot(121)
-hold on, grid on
-plot(taujv, record.vtheta_k)
+figure(), clf
+scatter3(real(Sk), imag(Sk), t)
+title('Sk', Interpreter='latex')
+xlabel('Real')
+ylabel('Imag', Interpreter='latex')
 
-subplot(122)
-hold on, grid on
-scatter(real(record.Skepl(2,:)), imag(record.Skepl(2,:)))
-axis equal
+
+%------ Doppler 
+figure(), clf
+plot(t, round(fDk_hat,2), LineWidth=2)
+title('Doppler')
+xlabel('time [s]')
+ylabel('$\hat{f}_D$ [Hz]', Interpreter='latex')
+
+%------ Phase delay
+figure(), clf
+plot(t, round(rad2deg(wrapToPi(theta_hat)),2), LineWidth=2)
+title('Phase delay')
+xlabel('time [s]')
+ylabel('$\hat{\theta}$ [deg]', Interpreter='latex')
+
+%------ Code delay 
+figure(), clf
+plot(t, round(tsk_hat*1e6,2), LineWidth=2)
+title('Code delay')
+xlabel('time [s]')
+ylabel('$\hat{t}_{sk}$ [us]', Interpreter='latex')

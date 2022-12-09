@@ -55,7 +55,7 @@ classdef InputSignal
                 xVec = obj.X; 
             end
 
-            tauVec = Ts*(0:1:obj.N-1)';
+            tauVec = Ts*(0:1:length(xVec))';
             
             if obj.high_side_mix
                 sMix = -1;
@@ -80,7 +80,7 @@ classdef InputSignal
                 xVec = obj.X;
             end
 
-            tauVec = Ts*(0:1:obj.N-1)';
+            tauVec = Ts*(0:1:length(xVec))';
 
             if obj.high_side_mix
                 sMix = -1;
