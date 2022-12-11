@@ -23,11 +23,6 @@ PRN_checkVtr = [ 1440 1620 1710 1744 1133 1455 1131 1454 1626 1504 1642 ...
     1750 1764 1772 1775 1776 1156 1467 1633 1715 1746 1763 1063 1706 ...
     1743 1761 1770 1774 1127 1453 1625 1712 1745 1713 1134 1456 1713 ];
 
-if ~isequal(oct2poly(PRN_checkVtr(i))', PRN(1:10))
-    error_msg = ['Error while generating PRN_' num2str(i,'%02d')];
-    display(error_msg)
-end
-
 PRN = 2*PRN - 1;
 end
 

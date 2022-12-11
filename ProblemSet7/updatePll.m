@@ -42,3 +42,5 @@ ek = atan(s.Qp/s.Ip);
 % Loop Filter
 xkp1 = s.Ad*s.xk + s.Bd*ek;
 vk   = s.Cd*s.xk + s.Dd*ek;
+
+end

@@ -48,7 +48,7 @@ classdef InputSignal
             if obj.bandpass.flag == true
                 % Convert signal to its complex baseband representation
                 [IVec,QVec] = if2iq(obj.X, Ts, obj.bandpass.fIF);
-                xVec = IVec + 1j*QVec;        
+                xVec = IVec - 1j*QVec;        
                 Ts = Ts*2;
             else
                 % complex baseband representation
