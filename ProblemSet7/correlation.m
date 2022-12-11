@@ -30,7 +30,7 @@ function [early, prompt, late] = correlation(xVeck, tsk_hat, thetaHat, fD_hat, c
     late.Sk   = sum(xVeck.*llVeck);
 
     % Examine the squared magnitude of Sk in dB.
-    prompt.SkdB = 10*log10(abs(prompt.Sk)^2)
+    prompt.SkdB = 10*log10(abs(prompt.Sk)^2);
     early.SkdB  = 10*log10(abs(early.Sk )^2);
     late.SkdB   = 10*log10(abs(late.Sk  )^2);
 

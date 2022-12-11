@@ -9,7 +9,7 @@ addpath("acquisition")
 %--------------------------------------------------------------------------
 filename = 'dfDataHead.bin';
 fc = 1575.42e6;
-Tfull   = 0.2;          % Time interval of data to load (1 ms = 1 data chip).
+Tfull   = 5;          % Time interval of data to load (1 ms = 1 data chip).
 Fs      = 40e6/7;     % Sampling frequency (Hz).
 bandpass.flag = true; % The file has the signal in bandpass representation
 bandpass.fIF = 1.405396825396879e6; % Intermediate freq. of the bandpass
@@ -31,12 +31,15 @@ for TXID = 14:14
     result{TXID} = rcv.acquireFine(tau, xVec, Ts, TXID, cfgAcquisition);
 end
 
+
+%%%%%-------------
 cfgAcquisition.nTc = 1;% TODO: fix this later
+[tau, xVec, Ts, sMix] = input.getBandpassRepresentation();
 %--------------------------------------------------------------------------
 % --------------------          Tracking       ----------------------------
 %--------------------------------------------------------------------------
 cfgTrack.fc     = fc;
-cfgTrack.fIF    = 0;
+cfgTrack.fIF    = bandpass.fIF;
 cfgTrack.Ts     = Ts;
 cfgTrack.Nc     = 1023;
 cfgTrack.Tc     = 1e-3/cfgTrack.Nc;

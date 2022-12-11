@@ -87,25 +87,25 @@ classdef Tracker < handle
             obj.bufferSk = [ abs(prompt.Sk).^2, obj.bufferSk(1:end-1) ];
             
             % single update step of a phase tracking loop
-            obj.pll.Ip = real(prompt.Sk); obj.pll.Qp = imag(prompt.Sk);
-            obj.pll.xk = obj.pll.xkp1;
-            [obj.pll.xkp1, obj.pll.vk] = updatePll(obj.pll);
+%             obj.pll.Ip = real(prompt.Sk); obj.pll.Qp = imag(prompt.Sk);
+%             obj.pll.xk = obj.pll.xkp1;
+%             [obj.pll.xkp1, obj.pll.vk] = updatePll(obj.pll);
 
             % Single update step of a delay tracking loop 
-%             obj.dll.vp        =  obj.sMix * obj.pll.vk/(2*pi*obj.fc); % applying Sm/wc gain.
-%             obj.dll.IsqQsqAvg = mean(obj.bufferSk);
-%             obj.dll.Ie = real(early.Sk);  obj.dll.Qe = imag(early.Sk);
-%             obj.dll.Ip = real(prompt.Sk); obj.dll.Qp = imag(prompt.Sk);
-%             obj.dll.Il = real(late.Sk);   obj.dll.Ql = imag(late.Sk);
-%             vTotal = updateDll(obj.dll);
-            vTotal = 0; % TODO: unbreak the loop later
+            obj.dll.vp        =  obj.pll.vk/(2*pi*obj.fc); % applying Sm/wc gain.
+            obj.dll.IsqQsqAvg = mean(obj.bufferSk);
+            obj.dll.Ie = real(early.Sk);  obj.dll.Qe = imag(early.Sk);
+            obj.dll.Ip = real(prompt.Sk); obj.dll.Qp = imag(prompt.Sk);
+            obj.dll.Il = real(late.Sk);   obj.dll.Ql = imag(late.Sk);
+            vTotal = updateDll(obj.dll);
+%             vTotal = 0; % TODO: unbreak the loop later
             
             % Results of the update
             obj.tsk_hat = obj.tsk_hat - vTotal * (obj.Ta);
             obj.tsk_hat = mod(obj.tsk_hat,1e-3);
             
             obj.theta_hat= obj.theta_hat + 2*pi*obj.fD_hat*obj.Ta;
-            obj.fD_hat   = obj.pll.vk/(2*pi);                          % TODO: I'm not sure if the `high/low-side` mixing needs to be considered here 
+%             obj.fD_hat   = obj.pll.vk/(2*pi);                          % TODO: I'm not sure if the `high/low-side` mixing needs to be considered here 
 
             result.fD_hat       = obj.fD_hat;
             result.theta_hat    = obj.theta_hat;
