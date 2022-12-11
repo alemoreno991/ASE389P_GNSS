@@ -76,11 +76,11 @@ classdef Tracker < handle
             % Use the acquisition estimation to initialize tracking
             obj.theta_hat = zeros(ceil(obj.correlator.Nk)+2,1); % Initialize the beat carrier phase estimate
             obj.fD_hat    = estimationSV.fDk_hat; % Initialize the doppler
-            obj.tsk_hat   = mod(estimationSV.tsk_hat, 1e-3); % Initialize the code-delay
+            obj.tsk_hat   = 0; % mod(estimationSV.tsk_hat, 1e-3); % Initialize the code-delay
         end
         
         function [result] = update(obj, tVeck, xVeck)
-
+            obj.correlator.Nk = length(tVeck);
             obj.theta_hat = obj.theta_hat(1:length(tVeck));
 
             % Perform correlations
@@ -116,6 +116,7 @@ classdef Tracker < handle
             result.tsk_hat      = obj.tsk_hat;
             result.SkdB         = prompt.SkdB;
             result.Sk           = prompt.Sk;
+            result.vTotal       = vTotal;
         end
     end
 end

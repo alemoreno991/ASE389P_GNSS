@@ -9,7 +9,7 @@ addpath("acquisition")
 %--------------------------------------------------------------------------
 filename = 'dfDataHead.bin';
 fc = 1575.42e6;
-Tfull   = 5;          % Time interval of data to load (1 ms = 1 data chip).
+Tfull   = 10;          % Time interval of data to load (1 ms = 1 data chip).
 Fs      = 40e6/7;     % Sampling frequency (Hz).
 bandpass.flag = true; % The file has the signal in bandpass representation
 bandpass.fIF = 1.405396825396879e6; % Intermediate freq. of the bandpass
@@ -81,8 +81,12 @@ SkdB = [];
 Sk = [];
 t = [];
 n_accums = Tfull/Ts * 1/Nk;
-for i_accum = 0:n_accums
-    jVeck = (floor(i_accum*Nk):floor((i_accum+1)*Nk))';
+
+NkOffset = floor(mod(result{TXID}.tsk_hat,1e-3)/cfgTrack.Ts);
+for i_accum = 0:n_accums-2
+    Nk0 = floor(i_accum*Nk+NkOffset);
+    Nkf = floor((i_accum+1)*Nk+NkOffset);
+    jVeck = (Nk0:Nkf)';
     jVeck(jVeck>length(xVec)-1) = [];
     tVeck = jVeck*Ts;
     xVeck = xVec(jVeck+1); % Signal for the k-th accumulation interval
@@ -94,9 +98,8 @@ for i_accum = 0:n_accums
     tsk_hat = [tsk_hat track_result.tsk_hat];
     SkdB = [SkdB track_result.SkdB];
     Sk = [Sk track_result.Sk];
-    t = [t i_accum*cfgTrack.Ta];
+    t = [t tVec(Nkf)];   
 end
-
 
 %% --------------------------- Plots ------------------------------------%%
 close all

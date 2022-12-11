@@ -1,7 +1,4 @@
 function [early, prompt, late] = correlation(tVeck, xVeck, tsk_hat, thetaHat, cfg)
-    
-    localNk = length(tVeck);
-
     % Generate the phase argument of the local carrier replica
     ThetaVec = 2*pi*cfg.fIF*tVeck + thetaHat;
     
@@ -15,9 +12,9 @@ function [early, prompt, late] = correlation(tVeck, xVeck, tsk_hat, thetaHat, cf
     % Oversample the code
     code_delay = -tsk_hat/cfg.Tc;
     eml_delay  = -cfg.eml/(2*cfg.Tc);
-    cacode_oversampled_prompt = oversampleSpreadingCode(cacode, cfg.Ts/cfg.Tc, code_delay          , localNk, cfg.Nc);
-    cacode_oversampled_early  = oversampleSpreadingCode(cacode, cfg.Ts/cfg.Tc, code_delay-eml_delay, localNk, cfg.Nc);
-    cacode_oversampled_late   = oversampleSpreadingCode(cacode, cfg.Ts/cfg.Tc, code_delay+eml_delay, localNk, cfg.Nc);
+    cacode_oversampled_prompt = oversampleSpreadingCode(cacode, cfg.Ts/cfg.Tc, code_delay          , cfg.Nk, cfg.Nc);
+    cacode_oversampled_early  = oversampleSpreadingCode(cacode, cfg.Ts/cfg.Tc, code_delay-eml_delay, cfg.Nk, cfg.Nc);
+    cacode_oversampled_late   = oversampleSpreadingCode(cacode, cfg.Ts/cfg.Tc, code_delay+eml_delay, cfg.Nk, cfg.Nc);
     
     % Generate the full local replica, with both code and carrier
     lpVeck = carrierVec.*cacode_oversampled_prompt;
