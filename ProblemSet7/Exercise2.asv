@@ -9,7 +9,7 @@ addpath("acquisition")
 %--------------------------------------------------------------------------
 filename = 'dfDataHead.bin';
 fc = 1575.42e6;
-Tfull   = 70;          % Time interval of data to load (1 ms = 1 data chip).
+Tfull   = 10;          % Time interval of data to load (1 ms = 1 data chip).
 Fs      = 40e6/7;     % Sampling frequency (Hz).
 bandpass.flag = true; % The file has the signal in bandpass representation
 bandpass.fIF = 1.405396825396879e6; % Intermediate freq. of the bandpass
@@ -31,7 +31,7 @@ for TXID = 14:14
     result{TXID} = rcv.acquireFine(tau, xVec, Ts, TXID, cfgAcquisition);
 end
 
-sigmaIQ = result{TXID}.sigmaIQ; % This is representative of the noise. (not dependent of the TXID)
+sigmaIQ = result{TXID}.sigmaIQ; % This is representative of the noise. (
 
 %--------------------------------------------------------------------------
 % --------------------          Tracking       ----------------------------
@@ -40,13 +40,15 @@ sigmaIQ = result{TXID}.sigmaIQ; % This is representative of the noise. (not depe
 [tVec, xVec, Ts, sMix] = input.getBandpassRepresentation();
 
 % Configure the tracker
+Nk = cfgTrack.nTc * cfgTrack.Tc *cfgTrack.Nc/Ts;
+
 cfgTrack.fc     = fc;
 cfgTrack.fIF    = bandpass.fIF;
 cfgTrack.Ts     = Ts;
 cfgTrack.Nc     = 1023;
 cfgTrack.Tc     = 1e-3/cfgTrack.Nc;
 cfgTrack.nTc    = 1;
-cfgTrack.Ta     = cfgTrack.nTc * cfgTrack.Tc *cfgTrack.Nc;
+cfgTrack.Ta     = Nk;
 cfgTrack.sMix   = sMix;
 
 cfgTrack.bufferSk.lenght = 100;
@@ -69,7 +71,6 @@ t = [];
 
 % Align the 0-th accumulation interval to the code to avoid data bit
 % transition problems (At least when using 1ms intervals)
-Nk = cfgTrack.Ta/cfgTrack.Ts;
 jk0 = floor(mod(result{TXID}.tsk_hat,1e-3)/cfgTrack.Ts);
 while jk0 < length(xVec) - Nk
     jVeck = (floor(jk0):floor(jk0+Nk-1))';
@@ -78,7 +79,7 @@ while jk0 < length(xVec) - Nk
     track_result = tracker.update(tVeck, xVeck);
 
     % Save stuff for plotting
-    fDk_hat = [fDk_hat track_result.fD_hat];
+    fDk_hat = [fDk_hat track_result.fD_hat]; %#ok<*AGROW> 
     theta_hat = [theta_hat track_result.theta_hat];
     tsk_hat = [tsk_hat track_result.tsk_hat];
     SkdB = [SkdB track_result.SkdB];
