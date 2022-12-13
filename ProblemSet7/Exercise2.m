@@ -1,38 +1,51 @@
-clc; close all; clear all;
+clc; close all; clear all
 addpath('preprocessing')
 addpath("acquisition")
+
 
 %--------------------------------------------------------------------------
 % --------------------    Load input signal     ---------------------------
 % --------------------            &             ---------------------------
 % -------------------- represent it in baseb-and ---------------------------
 %--------------------------------------------------------------------------
-filename = 'dfDataHead.bin';
+display('Loading data...')
+filename = 'rawintegersamples_fe.bin'; % 
 fc = 1575.42e6;
-Tfull   = 70;          % Time interval of data to load (1 ms = 1 data chip).
-Fs      = 40e6/7;     % Sampling frequency (Hz).
+Tfull   = 10;          % Time interval of data to load (1 ms = 1 data chip).
+Fs      = 9.6e6;     % Sampling frequency (Hz).
 bandpass.flag = true; % The file has the signal in bandpass representation
-bandpass.fIF = 1.405396825396879e6; % Intermediate freq. of the bandpass
+bandpass.fIF = 2.391428571429e6; % Intermediate freq. of the bandpass
 
-input = InputSignal(filename, Tfull, Fs, bandpass, 'high');
+input = InputSignal(filename, Tfull, Fs, bandpass, 'low');
 [tau, xVec, Ts, sMix] = input.getBasebandRepresentation();
 
+%%
 %--------------------------------------------------------------------------
 % --------------------         Acquisition      ---------------------------
 %--------------------------------------------------------------------------
 cfgAcquisition.method = 'FFT';
-cfgAcquisition.fDVtr  = -5000:100:5000;
+cfgAcquisition.fDVtr  = -4000:100:4000;
 cfgAcquisition.nStep  = 1;
 cfgAcquisition.nTc    = 10;
 cfgAcquisition.nAccum = 2;
 
 rcv = Acquisition(tau, xVec, Ts, cfgAcquisition);
-for TXID = 14:14
+for TXID = 8:8 %[8, 10, 15, 18, 20, 23, 24, 27, 32]
+    display(['Acquiring PRN ', num2str(TXID)])
     result{TXID} = rcv.acquireFine(tau, xVec, Ts, TXID, cfgAcquisition);
 end
 
 sigmaIQ = result{TXID}.sigmaIQ; % This is representative of the noise. (not dependent of the TXID)
+varIQ = sigmaIQ^2;
 
+
+% Acquire once again since my tracking loop unlocked at ~40 seconds
+% rcv = Acquisition(tau(idxPRN8), xVec(idxPRN8), Ts, cfgAcquisition);
+% cfgAcquisition.fDVtr  = 2640:0.1:2660;
+% resultPRN8 = rcv.acquire(tau(idxPRN8), xVec(idxPRN8), Ts, 8, cfgAcquisition);
+
+% plotSk(TXID, tau, result, cfgAcquisition); % DEBUGGING
+%%
 %--------------------------------------------------------------------------
 % --------------------          Tracking       ----------------------------
 %--------------------------------------------------------------------------
@@ -57,80 +70,55 @@ cfgTrack.pll.order  = 3;
 
 cfgTrack.dll.Bn     = 0.1;
 
-
-tracker = Tracker(result{TXID}, TXID, cfgTrack);
-% Run the feedback tracking loop
-theta_hat = [];
-fDk_hat = [];
-tsk_hat = [];
-SkdB = [];
-Sk = [];
-t = [];
-
-% Align the 0-th accumulation interval to the code to avoid data bit
-% transition problems (At least when using 1ms intervals)
-Nk = cfgTrack.Ta/cfgTrack.Ts;
-jk0 = floor(mod(result{TXID}.tsk_hat,1e-3)/cfgTrack.Ts);
-while jk0 < length(xVec) - Nk
-    jVeck = (floor(jk0):floor(jk0+Nk-1))';
-    tVeck = jVeck*Ts;
-    xVeck = xVec(jVeck+1); % Signal for the k-th accumulation interval
-    track_result = tracker.update(tVeck, xVeck);
-
-    % Save stuff for plotting
-    fDk_hat = [fDk_hat track_result.fD_hat];
-    theta_hat = [theta_hat track_result.theta_hat];
-    tsk_hat = [tsk_hat track_result.tsk_hat];
-    SkdB = [SkdB track_result.SkdB];
-    Sk = [Sk track_result.Sk];
-    t = [t tVec(floor(jk0+Nk-1))];
-
-    % Prepare for next index iteration
-    jk0 = jk0 + Nk;
+SV = {};
+for TXID = 8:8 %[8, 10, 15, 18, 20, 23, 24, 27, 32]
+    display(['Tracking PRN ', num2str(TXID)])
+    tracker = Tracker(result{TXID}, TXID, cfgTrack);
+    % Run the feedback tracking loop
+    theta_hat = [];
+    fDk_hat = [];
+    tsk_hat = [];
+    SkdB = [];
+    Sk = [];
+    CN0_hat = [];
+    t = [];
+    
+    % Align the 0-th accumulation interval to the code to avoid data bit
+    % transition problems (At least when using 1ms intervals)
+    Nk = cfgTrack.Ta/cfgTrack.Ts;
+    jk0 = floor(mod(result{TXID}.tsk_hat,1e-3)/cfgTrack.Ts);
+    while jk0 < length(xVec) - Nk
+        jVeck = (floor(jk0):floor(jk0+Nk-1))';
+        tVeck = jVeck*Ts;
+        xVeck = xVec(jVeck+1); % Signal for the k-th accumulation interval
+        track_result = tracker.update(tVeck, xVeck);
+    
+        % Save stuff for plotting
+        fDk_hat = [fDk_hat track_result.fD_hat];
+        theta_hat = [theta_hat track_result.theta_hat];
+        tsk_hat = [tsk_hat track_result.tsk_hat];
+        SkdB = [SkdB track_result.SkdB];
+        Sk = [Sk track_result.Sk];
+        CN0_hat = [CN0_hat track_result.CN0];
+        t = [t tVec(floor(jk0+Nk-1))];
+    
+        % Prepare for next index iteration
+        jk0 = jk0 + Nk;
+    end
+  
+    SV{TXID}.fDk_hat = fDk_hat;
+    SV{TXID}.theta_hat = theta_hat;
+    SV{TXID}.tsk_hat = tsk_hat;
+    SV{TXID}.SkdB = SkdB;
+    SV{TXID}.Sk = Sk;
+    SV{TXID}.CN0_hat = CN0_hat;
+    SV{TXID}.t = t;
 end
 
+display('READY')
 %% --------------------------- Plots ------------------------------------%%
-close all
+% clc; close all; clear all
+% load("Tracking.mat");
 
-%------ |Sk|^2 
-figure(1), clf
-plot(t, SkdB, LineWidth=2)
-title('$|Sk|^2$', Interpreter='latex')
-xlabel('time [s]')
-ylabel('$|Sk|^2$ [dB]', Interpreter='latex')
-grid on;
-
-%------ Sk 
-figure(2), clf
-scatter(real(Sk), imag(Sk))
-title('Sk', Interpreter='latex')
-xlabel('Real')
-ylabel('Imag', Interpreter='latex')
-grid on;
-lims = [-3000 3000];
-xlim(lims)
-ylim(lims)
-
-%------ Doppler 
-figure(3), clf
-plot(t, round(fDk_hat,2), LineWidth=2)
-title('Doppler')
-xlabel('time [s]')
-ylabel('$\hat{f}_D$ [Hz]', Interpreter='latex')
-grid on;
-
-%------ Phase delay
-figure(4), clf
-plot(t, unwrap(theta_hat), LineWidth=2)
-title('Phase delay')
-xlabel('time [s]')
-ylabel('$\hat{\theta}$ [deg]', Interpreter='latex')
-grid on;
-
-%------ Code delay 
-figure(5), clf
-plot(t, round(tsk_hat*1e6,2), LineWidth=2)
-title('Code delay')
-xlabel('time [s]')
-ylabel('$\hat{t}_{sk}$ [us]', Interpreter='latex')
-grid on;
+TXID = 8;
+analizeResults(TXID, SV);
