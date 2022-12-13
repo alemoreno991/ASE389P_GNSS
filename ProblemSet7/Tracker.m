@@ -117,6 +117,7 @@ classdef Tracker < handle
             result.SkdB         = prompt.SkdB;
             result.Sk           = prompt.Sk;
             result.vTotal       = vTotal;
+            result.CN0          = 10*log10((abs(prompt.Sk).^2 - 2*obj.sigmaIQ^2)/(2*obj.sigmaIQ^2*obj.Ta));
         end
     end
 end

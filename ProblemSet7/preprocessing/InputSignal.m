@@ -16,22 +16,43 @@ classdef InputSignal
             obj.Tfull = Tfull;
             obj.Fs = Fs;
             obj.N = floor(Fs*Tfull/16)*16;
+            obj.bandpass.flag = bandpass.flag;
 
             %----- Load data
-            fid = fopen(filename,'r','l');
-            
-            % Configure Baseband/Bandpass representation
-            obj.bandpass.flag = bandpass.flag;
-            if obj.bandpass.flag == true
+            if strcmp(filename, 'rawintegersamples_fe.bin')
                 obj.bandpass.fIF  = bandpass.fIF;
-                [X, ~] = binloadSamples(fid, obj.N, 'dual');
-                obj.X = X(:,1);
-            else
-                fid = fopen('niData01head_5MHz.bin','r','l');
-                X = fread(fid, [2, obj.N], 'int16')';
-                obj.X = X(:,1) + 1j*X(:,2);
-            end
+                
+                stream = 1;         % Data stream (between 1 and numStreams)
+                numStreams = 4;     % Number of data streams 
+                tSeek = 0;          % Seek time into data (sec)
 
+                fid = fopen(filename, 'r', 'n');
+                Ns = floor(Tfull*Fs);
+                % numStreams bytes per sample, one for each data stream
+                seekOffset = floor(tSeek*Fs)*numStreams;
+                status = fseek(fid,seekOffset,-1);
+                if(status == -1)
+                  error('tSeek beyond file limit');
+                end
+                Y = fread(fid, [numStreams,Ns], 'int8')';
+                if(length(Y(:,1)) < Ns)
+                  error('Insufficient data');
+                end
+                obj.X = Y(:,stream);
+            else
+                fid = fopen(filename,'r','l');
+                
+                % Configure Baseband/Bandpass representation
+                if obj.bandpass.flag == true
+                    obj.bandpass.fIF  = bandpass.fIF;
+                    [X, ~] = binloadSamples(fid, obj.N, 'dual');
+                    obj.X = X(:,1);
+                else
+                    fid = fopen('niData01head_5MHz.bin','r','l');
+                    X = fread(fid, [2, obj.N], 'int16')';
+                    obj.X = X(:,1) + 1j*X(:,2);
+                end
+            end
             fclose(fid);
 
             % Determinte if `high` or `low` side mixing was used
