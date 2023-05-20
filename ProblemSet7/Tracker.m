@@ -104,7 +104,7 @@ classdef Tracker < handle
             vTotal = updateDll(obj.dll);
             
             % Results of the update
-            obj.tsk_hat = obj.tsk_hat - vTotal * (obj.Ta);
+            obj.tsk_hat = obj.tsk_hat + (obj.Ta)/ (1 + vTotal); % TODO: changed
             obj.tsk_hat = mod(obj.tsk_hat,1e-3);
             
             timeToInteg   = (0:obj.correlator.Nk+2)'*obj.Ts;
@@ -117,7 +117,7 @@ classdef Tracker < handle
             result.SkdB         = prompt.SkdB;
             result.Sk           = prompt.Sk;
             result.vTotal       = vTotal;
-            result.CN0          = 10*log10((abs(prompt.Sk).^2 - 2*obj.sigmaIQ^2)/(2*obj.sigmaIQ^2*obj.Ta));
+            result.CN0          = 10*log10((abs(prompt.Sk).^2 - 2*obj.sigmaIQ^2)/(2*obj.Ta*obj.sigmaIQ^2));
         end
     end
 end
